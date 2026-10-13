@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+# Build outputs copied in by tools/build.sh / CI
+public/wasm/*
+!public/wasm/.gitkeep
+public/models/*.tlm

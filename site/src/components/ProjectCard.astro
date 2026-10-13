@@ -1,0 +1,114 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  project: CollectionEntry<"projects">;
+}
+const { project } = Astro.props;
+const { title, summary, stack, metric, repo, featured, placeholder } = project.data;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const href = `${base}projects/${project.id}/`;
+---
+
+<article class:list={["card panel", { featured, placeholder }]}>
+  {
+    metric && (
+      <div class="metric mono">
+        <span class="mv">{metric.value}</span>
+        <span class="ml">{metric.label}</span>
+      </div>
+    )
+  }
+  <h3><a href={href}>{title}</a></h3>
+  <p>{summary}</p>
+  <ul class="stack">{stack.map((s) => <li class="tag">{s}</li>)}</ul>
+  <div class="links mono">
+    <a href={href}>write-up →</a>
+    {repo && <a href={repo}>source ↗</a>}
+  </div>
+  {placeholder && <span class="ph mono">placeholder</span>}
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px;
+    transition: border-color 0.15s;
+  }
+  .card:hover {
+    border-color: var(--line-strong);
+  }
+  .featured {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  }
+  .metric {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .mv {
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .ml {
+    font-size: 12px;
+    color: var(--faint);
+  }
+  h3 {
+    font-size: 19px;
+  }
+  h3 a {
+    text-decoration: none;
+  }
+  /* Whole card is clickable via the title link. */
+  h3 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .links {
+    display: flex;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 12.5px;
+  }
+  .links a {
+    position: relative;
+    z-index: 1;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .links a:hover {
+    color: var(--accent);
+  }
+  .placeholder {
+    border-style: dashed;
+  }
+  .ph {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 10.5px;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+</style>

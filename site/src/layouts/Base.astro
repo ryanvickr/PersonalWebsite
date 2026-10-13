@@ -1,0 +1,72 @@
+---
+import "../styles/global.css";
+import StatusBar from "../components/StatusBar.astro";
+import { site } from "../site.config";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title = site.title, description = site.description } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0b0e11" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <script is:inline>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        const t = localStorage.getItem("theme");
+        if (t) document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="sr-only" href="#main">Skip to content</a>
+    <StatusBar />
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="footer wrap">
+      <div class="mono">
+        <span class="accent">$</span> built with Astro + C++20 → WebAssembly ·{" "}
+        <a href={site.sourceRepo}>source</a>
+      </div>
+      <div class="mono faint">
+        Demo model: TinyStories (Eldan &amp; Li, 2023), checkpoints from{" "}
+        <a href="https://github.com/karpathy/llama2.c">llama2.c</a> (MIT).
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-top: clamp(72px, 10vw, 120px);
+    padding-top: 24px;
+    padding-bottom: 40px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .accent {
+    color: var(--accent);
+  }
+  .faint {
+    color: var(--faint);
+  }
+</style>
