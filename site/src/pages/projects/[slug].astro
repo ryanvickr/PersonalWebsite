@@ -1,0 +1,134 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { site } from "../../site.config";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((p) => ({ params: { slug: p.id }, props: { project: p } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const { title, summary, stack, metric, repo } = project.data;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+---
+
+<Base title={`${title} · ${site.name}`} description={summary}>
+  <article class="wrap post">
+    <a class="back mono" href={`${base}#projects`}>← all projects</a>
+    <header>
+      <h1>{title}</h1>
+      <p class="summary">{summary}</p>
+      <div class="meta">
+        {metric && <span class="metric mono"><b>{metric.value}</b> {metric.label}</span>}
+        <ul>{stack.map((s) => <li class="tag">{s}</li>)}</ul>
+        {repo && <a class="btn" href={repo}>View source ↗</a>}
+      </div>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</Base>
+
+<style>
+  .post {
+    max-width: 820px;
+    padding-top: clamp(40px, 7vw, 80px);
+  }
+  .back {
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  h1 {
+    font-size: clamp(28px, 4.4vw, 42px);
+    margin: 22px 0 14px;
+  }
+  .summary {
+    color: var(--muted);
+    font-size: 17px;
+    margin: 0 0 20px;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 18px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  .meta ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .metric {
+    font-size: 13px;
+    color: var(--faint);
+  }
+  .metric b {
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 500;
+    margin-right: 4px;
+  }
+  .prose {
+    font-size: 16.5px;
+    line-height: 1.75;
+  }
+  .prose :global(h2) {
+    font-size: 21px;
+    margin: 40px 0 12px;
+  }
+  .prose :global(p),
+  .prose :global(li) {
+    color: var(--muted);
+  }
+  .prose :global(strong) {
+    color: var(--text);
+  }
+  .prose :global(code) {
+    font-size: 0.88em;
+    padding: 1px 5px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--text);
+  }
+  .prose :global(pre) {
+    padding: 16px;
+    overflow-x: auto;
+    background: var(--panel) !important;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .prose :global(pre code) {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font: 13.5px var(--mono);
+    font-variant-numeric: tabular-nums;
+    display: block;
+    overflow-x: auto;
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .prose :global(th) {
+    color: var(--faint);
+    font-weight: 500;
+    text-align: left;
+  }
+</style>

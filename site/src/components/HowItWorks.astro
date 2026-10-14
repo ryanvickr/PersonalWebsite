@@ -1,0 +1,163 @@
+---
+// The pipeline behind the demo, with the real hot loop from engine/src/tensor_ops.cpp.
+const steps = [
+  {
+    n: "01",
+    title: "Tokenize",
+    body: "SentencePiece BPE in C++: split to codepoints, then repeatedly merge the highest-scoring adjacent pair. Unknown bytes fall back to <0xNN> tokens.",
+  },
+  {
+    n: "02",
+    title: "Forward pass",
+    body: "6 Llama-2 blocks: RMSNorm → attention with RoPE and a KV cache → SwiGLU MLP. Each new token costs one pass, and earlier keys and values are reused.",
+  },
+  {
+    n: "03",
+    title: "int8 matmul",
+    body: "Weights and activations are quantized in groups of 32 with an fp32 scale each, making weights 4× smaller. Dot products run in integer SIMD lanes.",
+  },
+  {
+    n: "04",
+    title: "Sample",
+    body: "Softmax with temperature, then nucleus (top-p) sampling. The top-5 candidates are returned with every token, which is what the tooltip and the bars show.",
+  },
+];
+const specs = [
+  { v: "70 KB", k: "engine .wasm" },
+  { v: "17.5 MB", k: "int8 weights (fp32: 60 MB)" },
+  { v: "3.3×", k: "SIMD over scalar (WASM)" },
+  { v: "0", k: "runtime dependencies" },
+];
+const kernel = `// 16 int8 weights × 16 int8 activations per iteration.
+// WASM has no int8 dot product: widen to i16, then i32x4.dot_i16x8.
+const v128_t vx = wasm_v128_load(x.q + k);
+const v128_t xl = wasm_i16x8_extend_low_i8x16(vx);
+const v128_t xh = wasm_i16x8_extend_high_i8x16(vx);
+const v128_t v0 = wasm_v128_load(w0 + k), v1 = wasm_v128_load(w1 + k);
+a0 = wasm_i32x4_add(a0, wasm_i32x4_dot_i16x8(xl, wasm_i16x8_extend_low_i8x16(v0)));
+a0 = wasm_i32x4_add(a0, wasm_i32x4_dot_i16x8(xh, wasm_i16x8_extend_high_i8x16(v0)));
+// ...same for row 1: each activation load feeds two weight rows`;
+---
+
+<div class="how">
+  <ol class="steps">
+    {
+      steps.map((s) => (
+        <li class="panel">
+          <span class="n mono">{s.n}</span>
+          <h3>{s.title}</h3>
+          <p>{s.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <div class="lower">
+    <dl class="specs panel">
+      {
+        specs.map((s) => (
+          <div>
+            <dt class="mono">{s.v}</dt>
+            <dd>{s.k}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <figure class="code panel">
+      <figcaption class="mono">engine/src/tensor_ops.cpp · matmul_q8 (wasm_simd128)</figcaption>
+      <pre><code>{kernel}</code></pre>
+    </figure>
+  </div>
+</div>
+
+<style>
+  .how {
+    margin-top: 20px;
+  }
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .steps li {
+    padding: 18px;
+  }
+  .n {
+    font-size: 12px;
+    color: var(--accent);
+  }
+  h3 {
+    font-size: 16px;
+    margin: 6px 0 8px;
+  }
+  .steps p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .lower {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0;
+  }
+  .specs div {
+    padding: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .specs div:nth-child(odd) {
+    border-right: 1px solid var(--line);
+  }
+  .specs div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+  dt {
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  dd {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .code {
+    margin: 0;
+    overflow: hidden;
+  }
+  figcaption {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+    font-size: 11.5px;
+    color: var(--faint);
+  }
+  pre {
+    margin: 0;
+    padding: 14px;
+    overflow-x: auto;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--muted);
+  }
+  @media (max-width: 960px) {
+    .steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .lower {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 520px) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

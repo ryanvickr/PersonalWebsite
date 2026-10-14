@@ -1,0 +1,146 @@
+---
+import { site } from "../site.config";
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const nav = [
+  { href: "#demo", idx: "01", label: "demo" },
+  { href: "#about", idx: "02", label: "about" },
+  { href: "#projects", idx: "03", label: "projects" },
+  { href: "#experience", idx: "04", label: "experience" },
+];
+const initials = site.name
+  .split(" ")
+  .map((w) => w[0])
+  .join("");
+---
+
+<header class="bar">
+  <div class="wrap inner">
+    <a class="brand" href={base} aria-label={`${site.name}, home`}>
+      <span class="logo">{initials}</span>
+      <span class="name">{site.name.toUpperCase()}</span>
+    </a>
+    <nav aria-label="Sections">
+      {
+        nav.map((n) => (
+          <a href={`${base}${n.href}`}>
+            <span class="idx">{n.idx}</span>
+            {n.label}
+          </a>
+        ))
+      }
+    </nav>
+    <div class="right">
+      <span class="clock" id="utc-clock" aria-hidden="true">--:--:-- UTC</span>
+      <button class="theme" id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const clock = document.getElementById("utc-clock");
+  const tick = () => {
+    if (clock) clock.textContent = new Date().toISOString().slice(11, 19) + " UTC";
+  };
+  tick();
+  setInterval(tick, 1000);
+
+  document.getElementById("theme-toggle")?.addEventListener("click", () => {
+    const root = document.documentElement;
+    const next = root.dataset.theme === "light" ? "dark" : "light";
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch {}
+  });
+</script>
+
+<style>
+  .bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 52px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .logo {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-radius: 2px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  nav {
+    display: flex;
+    gap: 22px;
+    margin-left: auto;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+  nav a:hover {
+    color: var(--text);
+  }
+  .idx {
+    color: var(--accent);
+    margin-right: 6px;
+  }
+  .right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .clock {
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .theme {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .theme:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  @media (max-width: 860px) {
+    nav,
+    .clock {
+      display: none;
+    }
+    .right {
+      margin-left: auto;
+    }
+  }
+  @media (max-width: 420px) {
+    .name {
+      display: none;
+    }
+  }
+</style>
