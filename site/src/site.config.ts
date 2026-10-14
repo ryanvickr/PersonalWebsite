@@ -1,9 +1,9 @@
 // Everything personal lives here. Edit this file (and src/content/) to make
 // the site yours; nothing else needs to change.
 export const site = {
-  name: "Ryan Vickr",
-  handle: "ryan@vickr",
-  title: "Ryan Vickr: C++ engineer",
+  name: "Ryan Vickramasinghe",
+  handle: "ryanvickr",
+  title: "Ryan Vickramasinghe: Software Engineer",
   description:
     "Software engineer writing fast C++ for markets and machine learning. Includes a transformer inference engine running live in your browser.",
   headline: "I write fast C++ for markets and machine learning.",
@@ -14,7 +14,7 @@ export const site = {
     github: "https://github.com/ryanvickr",
     linkedin: "https://www.linkedin.com/in/ryanvickr", // TODO: confirm URL
     email: "ryanvickr@gmail.com",
-    resume: "resume.pdf", // relative to the site base; drop a PDF in public/
+    resume: "Ryan-Vickramasinghe-Resume.pdf", // relative to the site base; drop a PDF in public/
   },
   sourceRepo: "https://github.com/ryanvickr/PersonalWebsite",
 };
